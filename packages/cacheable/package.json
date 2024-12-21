@@ -1,6 +1,6 @@
 {
 	"name": "cacheable",
-	"version": "1.8.5",
+	"version": "1.8.6",
 	"description": "High Performance Layer 1 / Layer 2 Caching with Keyv Storage",
 	"type": "module",
 	"main": "./dist/index.cjs",
@@ -22,24 +22,24 @@
 	"private": false,
 	"scripts": {
 		"build": "rimraf ./dist && tsup src/index.ts --format cjs,esm --dts --clean",
-		"prepare": "pnpm build",
+		"prepublish": "pnpm build",
 		"test": "xo --fix && vitest run --coverage",
 		"test:ci": "xo && vitest run",
 		"clean": "rimraf ./dist ./coverage ./node_modules"
 	},
 	"devDependencies": {
-		"@keyv/redis": "^3.0.1",
-		"@types/node": "^22.9.0",
-		"@vitest/coverage-v8": "^2.1.4",
+		"@keyv/redis": "^4.0.2",
+		"@types/node": "^22.10.2",
+		"@vitest/coverage-v8": "^2.1.8",
 		"lru-cache": "^11.0.2",
 		"rimraf": "^6.0.1",
 		"tsup": "^8.3.5",
-		"typescript": "^5.6.3",
-		"vitest": "^2.1.4",
-		"xo": "^0.59.3"
+		"typescript": "^5.7.2",
+		"vitest": "^2.1.8",
+		"xo": "^0.60.0"
 	},
 	"dependencies": {
-		"hookified": "^1.5.0",
+		"hookified": "^1.5.1",
 		"keyv": "^5.2.1"
 	},
 	"keywords": [

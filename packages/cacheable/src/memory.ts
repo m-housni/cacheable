@@ -21,6 +21,11 @@ export type CacheableMemoryOptions = {
 	checkInterval?: number;
 };
 
+export type SetOptions = {
+	ttl?: number | string;
+	expire?: number | Date;
+};
+
 export class CacheableMemory extends Hookified {
 	private _lru = new DoublyLinkedList<string>();
 	private readonly _hashCache = new Map<string, number>();
@@ -235,18 +240,32 @@ export class CacheableMemory extends Hookified {
 	 * Sets the value of the key
 	 * @param {string} key - The key to set the value
 	 * @param {any} value - The value to set
-	 * @param {number|string} [ttl] - Time to Live - If you set a number it is miliseconds, if you set a string it is a human-readable.
+	 * @param {number|string|SetOptions} [ttl] - Time to Live - If you set a number it is miliseconds, if you set a string it is a human-readable.
+	 * If you want to set expire directly you can do that by setting the expire property in the SetOptions.
 	 * If you set undefined, it will use the default time-to-live. If both are undefined then it will not have a time-to-live.
 	 * @returns {void}
 	 */
-	public set(key: string, value: any, ttl?: number | string): void {
+	public set(key: string, value: any, ttl?: number | string | SetOptions): void {
 		const store = this.getStore(key);
 		let expires;
 		if (ttl !== undefined || this._ttl !== undefined) {
-			const finalTtl = shorthandToTime(ttl ?? this._ttl);
+			if (typeof ttl === 'object') {
+				if (ttl.expire) {
+					expires = typeof ttl.expire === 'number' ? ttl.expire : ttl.expire.getTime();
+				}
 
-			if (finalTtl !== undefined) {
-				expires = finalTtl;
+				if (ttl.ttl) {
+					const finalTtl = shorthandToTime(ttl.ttl);
+					if (finalTtl !== undefined) {
+						expires = finalTtl;
+					}
+				}
+			} else {
+				const finalTtl = shorthandToTime(ttl ?? this._ttl);
+
+				if (finalTtl !== undefined) {
+					expires = finalTtl;
+				}
 			}
 		}
 
@@ -537,9 +556,10 @@ export class CacheableMemory extends Hookified {
 	 */
 	public startIntervalCheck() {
 		if (this._checkInterval > 0) {
+			/* c8 ignore next 1 */
 			if (this._interval) {
-				// Be overly cautious and clear the interval as we've unref'd it
-				// and we don't want to leak it
+				// Be overly cautious and clear the interval as we've unref'd it and we don't want to leak it
+				/* c8 ignore next 2 */
 				clearInterval(this._interval);
 			}
 
@@ -578,7 +598,7 @@ export class CacheableMemory extends Hookified {
 	 * @param {Object} [options] - The options to wrap
 	 * @returns {Function} - The wrapped function
 	 */
-	public wrap<T>(function_: (...arguments_: any[]) => T, options?: WrapFunctionOptions): (...arguments_: any[]) => T {
+	public wrap<T, Arguments extends any[]>(function_: (...arguments_: Arguments) => T, options?: WrapFunctionOptions): (...arguments_: Arguments) => T {
 		const wrapOptions = {
 			ttl: options?.ttl ?? this._ttl,
 			keyPrefix: options?.keyPrefix,
